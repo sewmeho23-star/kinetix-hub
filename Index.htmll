@@ -1,0 +1,1197 @@
+<!doctype html>
+<html lang="en" class="scroll-smooth">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
+    <title>Kinetix Hub</title>
+    <meta
+      name="description"
+      content="Mobile-first PWA distribution hub for Android APKs, secure canvas PDF books, and curated media with AdMob and Supabase integration."
+    />
+    <meta property="og:title" content="Kinetix Hub" />
+    <meta
+      property="og:description"
+      content="Mobile-first PWA distribution hub for Android APKs, secure canvas PDF books, and curated media."
+    />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <!-- PWA & Mobile WebView Meta Tags -->
+    <meta name="theme-color" content="#0b1220" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Kinetix" />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+
+    <!-- Typography: Plus Jakarta Sans (Display), DM Sans (Body), JetBrains Mono (Metrics) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Tailwind CSS via CDN (class-based dark mode enabled for instant toggling) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            fontFamily: {
+              display: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+              sans: ['"DM Sans"', 'system-ui', 'sans-serif'],
+              mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace'],
+            },
+            colors: {
+              brand: {
+                50: '#eff6ff',
+                100: '#dbeafe',
+                500: '#3b82f6',
+                600: '#2563eb',
+                700: '#1d4ed8',
+              },
+            },
+          },
+        },
+      };
+    </script>
+
+    <!-- Prevent theme flash on initial load -->
+    <script>
+      (function () {
+        const stored = localStorage.getItem('kinetix_theme');
+        const prefersDark =
+          window.matchMedia &&
+          window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (stored === 'dark' || (!stored && prefersDark)) {
+          document.documentElement.classList.add('dark');
+        }
+      })();
+    </script>
+
+    <!-- Custom Stylesheet -->
+    <link rel="stylesheet" href="./style.css" />
+
+    <!-- Supabase JS SDK v2 (via CDN) -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- Mozilla PDF.js v3.11 (via CDN) for strictly-canvas secure rendering -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  </head>
+
+  <body
+    class="min-h-screen bg-slate-50 text-slate-900 antialiased transition-colors duration-200 dark:bg-[#090d16] dark:text-slate-100"
+  >
+    <!-- =================================================================== -->
+    <!-- TOP APP BAR (3-Zone Contract: Brand · Desktop Tabs · Primary Actions) -->
+    <!-- =================================================================== -->
+    <header
+      class="sticky top-0 z-30 h-14 border-b border-slate-200/80 bg-white/90 backdrop-blur-md dark:border-white/10 dark:bg-[#0b1220]/90"
+    >
+      <div
+        class="mx-auto flex h-full max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8"
+      >
+        <!-- Zone 1: Brand Mark (5 rapid taps opens Secret Admin Portal) -->
+        <button
+          id="brand-logo-trigger"
+          type="button"
+          aria-label="Kinetix Hub Home"
+          class="flex shrink-0 items-center gap-2.5 rounded-lg py-1 pr-2 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-600"
+        >
+          <img
+            src="/icon.svg"
+            alt="Kinetix Hub"
+            class="h-8 w-8 shrink-0 rounded-lg object-cover"
+          />
+          <span
+            class="font-display text-lg font-bold tracking-tight text-slate-900 whitespace-nowrap dark:text-white"
+          >
+            Kinetix Hub
+          </span>
+        </button>
+
+        <!-- Zone 2: Desktop Navigation Links (Mirrors Bottom Mobile Tabs) -->
+        <nav
+          aria-label="Primary Navigation"
+          class="hidden items-center gap-7 md:flex"
+        >
+          <button
+            type="button"
+            data-tab-target="apps"
+            class="desktop-nav-btn min-h-[40px] whitespace-nowrap shrink-0 border-b-2 border-brand-600 px-1 text-sm font-semibold text-brand-700 transition-colors dark:border-brand-500 dark:text-brand-400"
+          >
+            Apps
+          </button>
+          <button
+            type="button"
+            data-tab-target="books"
+            class="desktop-nav-btn min-h-[40px] whitespace-nowrap shrink-0 border-b-2 border-transparent px-1 text-sm font-medium text-slate-600 transition-colors hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
+          >
+            Books (PDF)
+          </button>
+          <button
+            type="button"
+            data-tab-target="media"
+            class="desktop-nav-btn min-h-[40px] whitespace-nowrap shrink-0 border-b-2 border-transparent px-1 text-sm font-medium text-slate-600 transition-colors hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
+          >
+            Media
+          </button>
+        </nav>
+
+        <!-- Zone 3: Install App CTA + Theme Toggle -->
+        <div class="flex shrink-0 items-center gap-2">
+          <button
+            id="pwa-install-btn"
+            type="button"
+            class="hidden min-h-[40px] items-center gap-1.5 rounded-lg bg-brand-700 px-3.5 py-2 text-xs font-semibold text-white transition hover:bg-brand-600 whitespace-nowrap shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+          >
+            <svg
+              class="h-4 w-4 shrink-0"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+              />
+            </svg>
+            <span>Install App</span>
+          </button>
+
+          <button
+            id="theme-toggle-btn"
+            type="button"
+            aria-label="Toggle color theme"
+            class="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-700 transition hover:bg-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 dark:border-white/10 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+          >
+            <!-- Sun Icon (shown in dark mode) -->
+            <svg
+              id="theme-icon-sun"
+              class="hidden h-5 w-5 dark:block"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M17.657 17.657l-.707-.707M6.343 6.343l-.707-.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
+              />
+            </svg>
+            <!-- Moon Icon (shown in light mode) -->
+            <svg
+              id="theme-icon-moon"
+              class="block h-5 w-5 dark:hidden"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
+              />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- =================================================================== -->
+    <!-- MAIN CONTENT WORKSPACE                                              -->
+    <!-- =================================================================== -->
+    <main
+      class="mx-auto max-w-7xl px-4 pt-5 pb-24 sm:px-6 md:pb-12 lg:px-8"
+    >
+      <!-- TOP BANNER AD SLOT (Adsterra / Monetag / AdSense Responsive) -->
+      <section aria-label="Top Advertisement" class="mb-6">
+        <div
+          id="ad-banner-top"
+          class="ad-slot-container mx-auto flex min-h-[60px] w-full max-w-[728px] items-center justify-between rounded-xl border border-slate-200/80 bg-white px-4 py-2.5 dark:border-white/10 dark:bg-slate-900/70"
+        >
+          <div class="flex flex-col">
+            <span class="text-[11px] font-medium text-slate-400 dark:text-slate-500">
+              Advertisement · Top Banner Slot (320×50 / 728×90)
+            </span>
+            <span class="text-xs text-slate-600 dark:text-slate-300">
+              Mount Adsterra or Monetag banner script inside <code class="font-mono text-[11px]">#ad-banner-top</code>
+            </span>
+          </div>
+          <span class="font-mono text-[11px] text-slate-400 shrink-0">#ad-banner-top</span>
+        </div>
+      </section>
+
+      <!-- HERO / WORKSPACE HEADER & SEARCH TOOLBAR -->
+      <section
+        class="mb-6 flex flex-col gap-4 border-b border-slate-200 pb-6 dark:border-white/10 md:flex-row md:items-end md:justify-between"
+      >
+        <div class="max-w-2xl">
+          <h1
+            id="section-heading"
+            class="font-display text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl dark:text-white"
+            style="text-wrap: balance"
+          >
+            Android Applications
+          </h1>
+          <p
+            id="section-subheading"
+            class="mt-1.5 text-sm leading-relaxed text-slate-600 sm:text-base dark:text-slate-400"
+          >
+            Verified APK builds ready for direct installation on Android devices.
+          </p>
+        </div>
+
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <!-- Media Sub-filter (Visible only on Media tab) -->
+          <div
+            id="media-filter-bar"
+            class="hidden items-center gap-1 rounded-lg bg-slate-200/70 p-1 dark:bg-slate-800/80"
+          >
+            <button
+              type="button"
+              data-media-filter="all"
+              class="media-filter-btn min-h-[36px] rounded-md bg-white px-3 text-xs font-semibold text-slate-900 shadow-sm transition whitespace-nowrap dark:bg-slate-700 dark:text-white"
+            >
+              All
+            </button>
+            <button
+              type="button"
+              data-media-filter="photo"
+              class="media-filter-btn min-h-[36px] rounded-md px-3 text-xs font-medium text-slate-600 transition hover:text-slate-900 whitespace-nowrap dark:text-slate-300 dark:hover:text-white"
+            >
+              Photos
+            </button>
+            <button
+              type="button"
+              data-media-filter="video"
+              class="media-filter-btn min-h-[36px] rounded-md px-3 text-xs font-medium text-slate-600 transition hover:text-slate-900 whitespace-nowrap dark:text-slate-300 dark:hover:text-white"
+            >
+              Videos
+            </button>
+          </div>
+
+          <!-- Search Input -->
+          <div class="relative w-full sm:w-64">
+            <svg
+              class="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-slate-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 1010.5 18a7.5 7.5 0 006.15-3.35z"
+              />
+            </svg>
+            <input
+              id="feed-search-input"
+              type="search"
+              placeholder="Search current catalog..."
+              aria-label="Search current catalog"
+              class="min-h-[44px] w-full rounded-xl border border-slate-200 bg-white pr-3 pl-9 text-sm text-slate-900 placeholder-slate-400 transition focus:border-brand-600 focus:outline-none dark:border-white/10 dark:bg-slate-900 dark:text-white dark:placeholder-slate-500"
+            />
+          </div>
+        </div>
+      </section>
+
+      <!-- LOADING / ERROR / FEED CONTAINER -->
+      <div id="feed-status-banner" class="mb-6 hidden"></div>
+
+      <!-- 1. APPS FEED SECTION -->
+      <section id="view-apps" aria-labelledby="section-heading">
+        <div
+          id="apps-grid"
+          class="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3"
+        ></div>
+      </section>
+
+      <!-- 2. BOOKS (PDF) FEED SECTION -->
+      <section id="view-books" class="hidden" aria-labelledby="section-heading">
+        <div
+          id="books-grid"
+          class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+        ></div>
+      </section>
+
+      <!-- 3. MEDIA (PHOTOS/VIDEOS) FEED SECTION -->
+      <section id="view-media" class="hidden" aria-labelledby="section-heading">
+        <div
+          id="media-grid"
+          class="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3"
+        ></div>
+      </section>
+
+      <!-- IN-FEED AD SLOT (Injected gracefully below/within feed grid) -->
+      <section aria-label="In-Feed Advertisement" class="mt-8">
+        <div
+          id="ad-in-feed"
+          class="ad-slot-container mx-auto flex min-h-[100px] w-full flex-col items-center justify-center rounded-2xl border border-slate-200/80 bg-white p-4 text-center dark:border-white/10 dark:bg-slate-900/70"
+        >
+          <span class="text-[11px] font-medium text-slate-400 dark:text-slate-500">
+            Sponsored · Native In-Feed Placement (#ad-in-feed)
+          </span>
+          <p class="mt-1 text-xs text-slate-600 dark:text-slate-300">
+            Ready for Adsterra Native Banner / Monetag In-Page Push / AdMob Native Express
+          </p>
+        </div>
+      </section>
+
+      <!-- BOTTOM BANNER AD SLOT -->
+      <section aria-label="Bottom Advertisement" class="mt-6">
+        <div
+          id="ad-banner-bottom"
+          class="ad-slot-container mx-auto flex min-h-[56px] w-full max-w-[728px] items-center justify-between rounded-xl border border-slate-200/80 bg-white px-4 py-2.5 dark:border-white/10 dark:bg-slate-900/70"
+        >
+          <span class="text-xs text-slate-600 dark:text-slate-300">
+            Advertisement · Bottom Banner Slot (320×50)
+          </span>
+          <span class="font-mono text-[11px] text-slate-400 shrink-0">#ad-banner-bottom</span>
+        </div>
+      </section>
+    </main>
+
+    <!-- =================================================================== -->
+    <!-- MOBILE BOTTOM NAVIGATION BAR (Thumb-Zone Ergonomics)                -->
+    <!-- =================================================================== -->
+    <nav
+      aria-label="Mobile Bottom Navigation"
+      class="fixed right-0 bottom-0 left-0 z-30 border-t border-slate-200 bg-white/95 pb-safe backdrop-blur-md dark:border-white/10 dark:bg-[#0b1220]/95 md:hidden"
+    >
+      <div class="grid h-14 grid-cols-3 items-center">
+        <button
+          type="button"
+          data-tab-target="apps"
+          class="mobile-nav-btn flex h-full flex-col items-center justify-center gap-0.5 text-brand-700 transition-colors dark:text-brand-400"
+        >
+          <svg
+            class="h-5 w-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
+            />
+          </svg>
+          <span class="text-[11px] font-semibold tracking-tight whitespace-nowrap">
+            Apps
+          </span>
+        </button>
+
+        <button
+          type="button"
+          data-tab-target="books"
+          class="mobile-nav-btn flex h-full flex-col items-center justify-center gap-0.5 text-slate-500 transition-colors dark:text-slate-400"
+        >
+          <svg
+            class="h-5 w-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+            />
+          </svg>
+          <span class="text-[11px] font-medium tracking-tight whitespace-nowrap">
+            Books (PDF)
+          </span>
+        </button>
+
+        <button
+          type="button"
+          data-tab-target="media"
+          class="mobile-nav-btn flex h-full flex-col items-center justify-center gap-0.5 text-slate-500 transition-colors dark:text-slate-400"
+        >
+          <svg
+            class="h-5 w-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+            />
+          </svg>
+          <span class="text-[11px] font-medium tracking-tight whitespace-nowrap">
+            Media
+          </span>
+        </button>
+      </div>
+    </nav>
+
+    <!-- =================================================================== -->
+    <!-- SECURE IN-APP CANVAS PDF READER MODAL (NO DOWNLOAD / NO PRINT)      -->
+    <!-- =================================================================== -->
+    <div
+      id="pdf-reader-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="pdf-reader-title"
+      class="protected-surface fixed inset-0 z-50 hidden flex-col bg-slate-950 text-slate-100"
+    >
+      <!-- Reader Top Controls -->
+      <div
+        class="flex h-14 shrink-0 items-center justify-between gap-3 border-b border-white/10 bg-slate-900 px-4"
+      >
+        <div class="min-w-0 flex-1">
+          <h2
+            id="pdf-reader-title"
+            class="truncate font-display text-sm font-semibold text-white sm:text-base"
+          >
+            Document Reader
+          </h2>
+          <p class="truncate text-xs text-slate-400">
+            Protected In-App Canvas View · Read-Only
+          </p>
+        </div>
+
+        <div class="flex shrink-0 items-center gap-1.5">
+          <button
+            id="pdf-zoom-out"
+            type="button"
+            aria-label="Zoom out"
+            class="flex h-10 w-10 items-center justify-center rounded-lg border border-white/10 bg-slate-800 text-sm font-semibold text-slate-200 hover:bg-slate-700"
+          >
+            -
+          </button>
+          <span
+            id="pdf-zoom-label"
+            class="w-12 text-center font-mono text-xs tabular-nums text-slate-300"
+          >
+            100%
+          </span>
+          <button
+            id="pdf-zoom-in"
+            type="button"
+            aria-label="Zoom in"
+            class="flex h-10 w-10 items-center justify-center rounded-lg border border-white/10 bg-slate-800 text-sm font-semibold text-slate-200 hover:bg-slate-700"
+          >
+            +
+          </button>
+          <button
+            id="pdf-close-btn"
+            type="button"
+            aria-label="Close reader"
+            class="ml-2 flex h-10 items-center gap-1 rounded-lg bg-slate-800 px-3 text-xs font-semibold text-white hover:bg-slate-700"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+
+      <!-- Scrollable Protected Canvas Viewport -->
+      <div
+        id="pdf-canvas-viewport"
+        class="secure-canvas-stage relative flex-1 overflow-auto bg-slate-950 p-4 sm:p-6"
+      >
+        <div
+          id="pdf-loading-state"
+          class="mx-auto my-12 max-w-xs text-center text-sm text-slate-400"
+        >
+          Rendering protected pages...
+        </div>
+
+        <div class="relative mx-auto flex w-fit flex-col items-center">
+          <canvas
+            id="pdf-canvas"
+            class="max-w-full rounded-lg bg-white shadow-2xl"
+          ></canvas>
+          <!-- Subtle non-interactive security watermark layer -->
+          <div
+            id="pdf-watermark-layer"
+            aria-hidden="true"
+            class="pointer-events-none absolute inset-0 overflow-hidden rounded-lg"
+          ></div>
+        </div>
+      </div>
+
+      <!-- Reader Bottom Page Navigation -->
+      <div
+        class="flex h-16 shrink-0 items-center justify-between gap-4 border-t border-white/10 bg-slate-900 px-4 pb-safe"
+      >
+        <button
+          id="pdf-prev-btn"
+          type="button"
+          class="min-h-[44px] rounded-lg border border-white/10 bg-slate-800 px-4 text-xs font-semibold text-white transition hover:bg-slate-700 disabled:opacity-40"
+        >
+          Previous
+        </button>
+
+        <div class="flex items-center gap-2 font-mono text-xs tabular-nums text-slate-300">
+          <span>Page</span>
+          <input
+            id="pdf-page-input"
+            type="number"
+            min="1"
+            value="1"
+            aria-label="Current page number"
+            class="h-9 w-14 rounded-md border border-white/15 bg-slate-950 text-center text-xs text-white focus:border-brand-500 focus:outline-none"
+          />
+          <span>of <strong id="pdf-page-count">1</strong></span>
+        </div>
+
+        <button
+          id="pdf-next-btn"
+          type="button"
+          class="min-h-[44px] rounded-lg bg-brand-600 px-4 text-xs font-semibold text-white transition hover:bg-brand-500 disabled:opacity-40"
+        >
+          Next
+        </button>
+      </div>
+    </div>
+
+    <!-- =================================================================== -->
+    <!-- PROTECTED MEDIA LIGHTBOX & VIDEO PLAYER MODAL                       -->
+    <!-- =================================================================== -->
+    <div
+      id="media-lightbox-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="media-modal-title"
+      class="protected-surface fixed inset-0 z-50 hidden flex-col bg-black/95 text-white"
+    >
+      <div
+        class="flex h-14 shrink-0 items-center justify-between border-b border-white/10 px-4"
+      >
+        <h2
+          id="media-modal-title"
+          class="truncate font-display text-sm font-semibold sm:text-base"
+        >
+          Media Viewer
+        </h2>
+        <button
+          id="media-modal-close"
+          type="button"
+          class="min-h-[40px] rounded-lg bg-white/10 px-3.5 text-xs font-semibold text-white hover:bg-white/20"
+        >
+          Close
+        </button>
+      </div>
+
+      <div
+        id="media-modal-stage"
+        class="flex flex-1 items-center justify-center overflow-auto p-4 sm:p-8"
+      ></div>
+
+      <div
+        id="media-modal-caption"
+        class="border-t border-white/10 px-4 py-3 text-center text-xs text-slate-300 sm:text-sm"
+      ></div>
+    </div>
+
+    <!-- =================================================================== -->
+    <!-- SECRET ADMIN DASHBOARD MODAL (#admin-portal OR 5x LOGO TAPS)        -->
+    <!-- =================================================================== -->
+    <div
+      id="admin-portal-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="admin-modal-heading"
+      class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/80 p-3 backdrop-blur-sm sm:p-6"
+    >
+      <div
+        class="flex max-h-[92vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl dark:border-white/10 dark:bg-slate-900"
+      >
+        <!-- Modal Header -->
+        <div
+          class="flex h-14 shrink-0 items-center justify-between border-b border-slate-200 px-5 dark:border-white/10"
+        >
+          <div>
+            <h2
+              id="admin-modal-heading"
+              class="font-display text-base font-bold text-slate-900 dark:text-white"
+            >
+              Admin Portal
+            </h2>
+          </div>
+          <div class="flex items-center gap-2">
+            <button
+              id="admin-signout-btn"
+              type="button"
+              class="hidden min-h-[36px] rounded-lg border border-slate-200 px-3 text-xs font-semibold text-slate-700 hover:bg-slate-100 dark:border-white/10 dark:text-slate-200 dark:hover:bg-slate-800"
+            >
+              Sign Out
+            </button>
+            <button
+              id="admin-close-btn"
+              type="button"
+              class="min-h-[36px] rounded-lg bg-slate-100 px-3 text-xs font-semibold text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+
+        <!-- Scrollable Modal Body -->
+        <div class="flex-1 overflow-y-auto p-5 sm:p-6">
+          <!-- STATE 1: SUPABASE AUTHENTICATION FORM -->
+          <div id="admin-auth-panel" class="mx-auto max-w-md py-4">
+            <h3 class="font-display text-xl font-bold text-slate-900 dark:text-white">
+              Administrator Sign In
+            </h3>
+            <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">
+              Authenticate with your Supabase Admin Email &amp; Password to publish or manage APK builds, PDF books, and media.
+            </p>
+
+            <div
+              id="admin-config-notice"
+              class="mt-4 hidden rounded-xl border border-amber-300/80 bg-amber-50 p-3.5 text-xs leading-relaxed text-amber-900 dark:border-amber-500/30 dark:bg-amber-950/40 dark:text-amber-200"
+            >
+              Supabase credentials in <code class="font-mono">app.js</code> are currently set to placeholders. You can connect your live project below or test CRUD locally in Sandbox Mode.
+            </div>
+
+            <form id="admin-login-form" class="mt-5 space-y-4">
+              <div>
+                <label
+                  for="admin-email"
+                  class="block text-xs font-semibold text-slate-700 dark:text-slate-300"
+                >
+                  Admin Email
+                </label>
+                <input
+                  id="admin-email"
+                  type="email"
+                  required
+                  autocomplete="email"
+                  placeholder="admin@yourdomain.com"
+                  class="mt-1.5 min-h-[44px] w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 text-sm text-slate-900 focus:border-brand-600 focus:bg-white focus:outline-none dark:border-white/10 dark:bg-slate-950 dark:text-white"
+                />
+              </div>
+
+              <div>
+                <label
+                  for="admin-password"
+                  class="block text-xs font-semibold text-slate-700 dark:text-slate-300"
+                >
+                  Password
+                </label>
+                <input
+                  id="admin-password"
+                  type="password"
+                  required
+                  autocomplete="current-password"
+                  placeholder="••••••••••••"
+                  class="mt-1.5 min-h-[44px] w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 text-sm text-slate-900 focus:border-brand-600 focus:bg-white focus:outline-none dark:border-white/10 dark:bg-slate-950 dark:text-white"
+                />
+              </div>
+
+              <p
+                id="admin-auth-error"
+                class="hidden text-xs font-medium text-rose-600 dark:text-rose-400"
+              ></p>
+
+              <button
+                id="admin-login-submit"
+                type="submit"
+                class="min-h-[46px] w-full rounded-xl bg-brand-700 px-4 text-sm font-semibold text-white transition hover:bg-brand-600"
+              >
+                Sign In to Dashboard
+              </button>
+            </form>
+
+            <!-- Optional Runtime Supabase Configuration & Sandbox Entry -->
+            <div
+              id="admin-sandbox-box"
+              class="mt-6 hidden border-t border-slate-200 pt-5 dark:border-white/10"
+            >
+              <button
+                id="admin-sandbox-btn"
+                type="button"
+                class="min-h-[44px] w-full rounded-xl border border-slate-300 bg-slate-100 px-4 text-xs font-semibold text-slate-800 transition hover:bg-slate-200 dark:border-white/15 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
+              >
+                Enter Local Preview Sandbox (No Supabase Configured)
+              </button>
+            </div>
+          </div>
+
+          <!-- STATE 2: AUTHENTICATED ADMIN WORKSPACE -->
+          <div id="admin-workspace-panel" class="hidden space-y-6">
+            <!-- Summary Metrics -->
+            <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <div
+                class="rounded-xl border border-slate-200 bg-slate-50 p-3.5 dark:border-white/10 dark:bg-slate-950"
+              >
+                <span class="text-xs text-slate-500 dark:text-slate-400">Apps</span>
+                <p
+                  id="stat-apps-count"
+                  class="mt-1 font-mono text-xl font-bold tabular-nums text-slate-900 dark:text-white"
+                >
+                  0
+                </p>
+              </div>
+              <div
+                class="rounded-xl border border-slate-200 bg-slate-50 p-3.5 dark:border-white/10 dark:bg-slate-950"
+              >
+                <span class="text-xs text-slate-500 dark:text-slate-400">Books</span>
+                <p
+                  id="stat-books-count"
+                  class="mt-1 font-mono text-xl font-bold tabular-nums text-slate-900 dark:text-white"
+                >
+                  0
+                </p>
+              </div>
+              <div
+                class="rounded-xl border border-slate-200 bg-slate-50 p-3.5 dark:border-white/10 dark:bg-slate-950"
+              >
+                <span class="text-xs text-slate-500 dark:text-slate-400">Media</span>
+                <p
+                  id="stat-media-count"
+                  class="mt-1 font-mono text-xl font-bold tabular-nums text-slate-900 dark:text-white"
+                >
+                  0
+                </p>
+              </div>
+              <div
+                class="rounded-xl border border-slate-200 bg-slate-50 p-3.5 dark:border-white/10 dark:bg-slate-950"
+              >
+                <span class="text-xs text-slate-500 dark:text-slate-400">Engagements</span>
+                <p
+                  id="stat-total-events"
+                  class="mt-1 font-mono text-xl font-bold tabular-nums text-slate-900 dark:text-white"
+                >
+                  0
+                </p>
+              </div>
+            </div>
+
+            <!-- Admin Segmented Tabs -->
+            <div
+              class="flex items-center gap-1 overflow-x-auto rounded-xl bg-slate-100 p-1 dark:bg-slate-950"
+            >
+              <button
+                type="button"
+                data-admin-tab="publish-app"
+                class="admin-tab-btn min-h-[40px] flex-1 rounded-lg bg-white px-3 text-xs font-semibold text-slate-900 shadow-sm whitespace-nowrap dark:bg-slate-800 dark:text-white"
+              >
+                Publish App
+              </button>
+              <button
+                type="button"
+                data-admin-tab="publish-book"
+                class="admin-tab-btn min-h-[40px] flex-1 rounded-lg px-3 text-xs font-medium text-slate-600 whitespace-nowrap hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
+              >
+                Publish PDF Book
+              </button>
+              <button
+                type="button"
+                data-admin-tab="publish-media"
+                class="admin-tab-btn min-h-[40px] flex-1 rounded-lg px-3 text-xs font-medium text-slate-600 whitespace-nowrap hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
+              >
+                Publish Media
+              </button>
+              <button
+                type="button"
+                data-admin-tab="manage-all"
+                class="admin-tab-btn min-h-[40px] flex-1 rounded-lg px-3 text-xs font-medium text-slate-600 whitespace-nowrap hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
+              >
+                Manage All
+              </button>
+            </div>
+
+            <!-- Feedback Banner -->
+            <div id="admin-feedback-banner" class="hidden rounded-xl p-3 text-xs font-medium"></div>
+
+            <!-- FORM A: PUBLISH / EDIT APP -->
+            <form id="form-admin-app" class="admin-panel space-y-4">
+              <input type="hidden" id="app-edit-id" value="" />
+              <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div>
+                  <label for="app-title" class="block text-xs font-semibold text-slate-700 dark:text-slate-300">
+                    App Title
+                  </label>
+                  <input
+                    id="app-title"
+                    type="text"
+                    required
+                    placeholder="e.g. Vault File Manager"
+                    class="mt-1.5 min-h-[44px] w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm dark:border-white/10 dark:bg-slate-950"
+                  />
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                  <div>
+                    <label for="app-version" class="block text-xs font-semibold text-slate-700 dark:text-slate-300">
+                      Version
+                    </label>
+                    <input
+                      id="app-version"
+                      type="text"
+                      required
+                      placeholder="2.4.1"
+                      class="mt-1.5 min-h-[44px] w-full rounded-xl border border-slate-200 bg-slate-50 px-3 font-mono text-sm dark:border-white/10 dark:bg-slate-950"
+                    />
+                  </div>
+                  <div>
+                    <label for="app-size" class="block text-xs font-semibold text-slate-700 dark:text-slate-300">
+                      Size
+                    </label>
+                    <input
+                      id="app-size"
+                      type="text"
+                      required
+                      placeholder="18.4 MB"
+                      class="mt-1.5 min-h-[44px] w-full rounded-xl border border-slate-200 bg-slate-50 px-3 font-mono text-sm dark:border-white/10 dark:bg-slate-950"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label for="app-description" class="block text-xs font-semibold text-slate-700 dark:text-slate-300">
+                  Description
+                </label>
+                <textarea
+                  id="app-description"
+                  rows="2"
+                  required
+                  placeholder="Concise summary of capabilities and Android compatibility..."
+                  class="mt-1.5 w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm dark:border-white/10 dark:bg-slate-950"
+                ></textarea>
+              </div>
+
+              <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div>
+                  <label for="app-icon-url" class="block text-xs font-semibold text-slate-700 dark:text-slate-300">
+                    Icon Image URL or Upload
+                  </label>
+                  <input
+                    id="app-icon-url"
+                    type="url"
+                    placeholder="https://... or upload below"
+                    class="mt-1.5 min-h-[44px] w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm dark:border-white/10 dark:bg-slate-950"
+                  />
+                  <input
+                    id="app-icon-file"
+                    type="file"
+                    accept="image/*"
+                    class="mt-2 block w-full text-xs text-slate-500 file:mr-3 file:rounded-lg file:border-0 file:bg-slate-200 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-slate-800 dark:file:bg-slate-800 dark:file:text-slate-200"
+                  />
+                </div>
+                <div>
+                  <label for="app-apk-url" class="block text-xs font-semibold text-slate-700 dark:text-slate-300">
+                    Direct APK Link or Upload (.apk)
+                  </label>
+                  <input
+                    id="app-apk-url"
+                    type="url"
+                    placeholder="https://.../release.apk or upload below"
+                    class="mt-1.5 min-h-[44px] w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm dark:border-white/10 dark:bg-slate-950"
+                  />
+                  <input
+                    id="app-apk-file"
+                    type="file"
+                    accept=".apk,application/vnd.android.package-archive"
+                    class="mt-2 block w-full text-xs text-slate-500 file:mr-3 file:rounded-lg file:border-0 file:bg-slate-200 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-slate-800 dark:file:bg-slate-800 dark:file:text-slate-200"
+                  />
+                </div>
+              </div>
+
+              <div class="flex items-center gap-3 pt-2">
+                <button
+                  type="submit"
+                  class="min-h-[44px] rounded-xl bg-brand-700 px-5 text-sm font-semibold text-white transition hover:bg-brand-600"
+                >
+                  Save App Release
+                </button>
+                <button
+                  type="button"
+                  id="app-form-reset"
+                  class="min-h-[44px] rounded-xl border border-slate-200 px-4 text-xs font-semibold text-slate-700 dark:border-white/10 dark:text-slate-300"
+                >
+                  Clear
+                </button>
+              </div>
+            </form>
+
+            <!-- FORM B: PUBLISH / EDIT PDF BOOK -->
+            <form id="form-admin-book" class="admin-panel hidden space-y-4">
+              <input type="hidden" id="book-edit-id" value="" />
+              <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                <div class="sm:col-span-2">
+                  <label for="book-title" class="block text-xs font-semibold text-slate-700 dark:text-slate-300">
+                    Book Title
+                  </label>
+                  <input
+                    id="book-title"
+                    type="text"
+                    required
+                    placeholder="e.g. Mobile Systems Architecture"
+                    class="mt-1.5 min-h-[44px] w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm dark:border-white/10 dark:bg-slate-950"
+                  />
+                </div>
+                <div>
+                  <label for="book-author" class="block text-xs font-semibold text-slate-700 dark:text-slate-300">
+                    Author
+                  </label>
+                  <input
+                    id="book-author"
+                    type="text"
+                    required
+                    placeholder="Elena Vance"
+                    class="mt-1.5 min-h-[44px] w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm dark:border-white/10 dark:bg-slate-950"
+                  />
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                <div class="sm:col-span-2">
+                  <label for="book-description" class="block text-xs font-semibold text-slate-700 dark:text-slate-300">
+                    Synopsis
+                  </label>
+                  <input
+                    id="book-description"
+                    type="text"
+                    required
+                    placeholder="Technical guide rendered in protected read-only canvas mode."
+                    class="mt-1.5 min-h-[44px] w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm dark:border-white/10 dark:bg-slate-950"
+                  />
+                </div>
+                <div>
+                  <label for="book-pages" class="block text-xs font-semibold text-slate-700 dark:text-slate-300">
+                    Page Count
+                  </label>
+                  <input
+                    id="book-pages"
+                    type="number"
+                    min="1"
+                    value="12"
+                    required
+                    class="mt-1.5 min-h-[44px] w-full rounded-xl border border-slate-200 bg-slate-50 px-3 font-mono text-sm dark:border-white/10 dark:bg-slate-950"
+                  />
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div>
+                  <label for="book-cover-url" class="block text-xs font-semibold text-slate-700 dark:text-slate-300">
+                    Cover Image URL or Upload
+                  </label>
+                  <input
+                    id="book-cover-url"
+                    type="url"
+                    placeholder="https://... or upload cover"
+                    class="mt-1.5 min-h-[44px] w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm dark:border-white/10 dark:bg-slate-950"
+                  />
+                  <input
+                    id="book-cover-file"
+                    type="file"
+                    accept="image/*"
+                    class="mt-2 block w-full text-xs text-slate-500 file:mr-3 file:rounded-lg file:border-0 file:bg-slate-200 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-slate-800 dark:file:bg-slate-800 dark:file:text-slate-200"
+                  />
+                </div>
+                <div>
+                  <label for="book-pdf-url" class="block text-xs font-semibold text-slate-700 dark:text-slate-300">
+                    PDF Source URL or Upload (.pdf)
+                  </label>
+                  <input
+                    id="book-pdf-url"
+                    type="url"
+                    placeholder="https://.../document.pdf or upload PDF"
+                    class="mt-1.5 min-h-[44px] w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm dark:border-white/10 dark:bg-slate-950"
+                  />
+                  <input
+                    id="book-pdf-file"
+                    type="file"
+                    accept="application/pdf,.pdf"
+                    class="mt-2 block w-full text-xs text-slate-500 file:mr-3 file:rounded-lg file:border-0 file:bg-slate-200 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-slate-800 dark:file:bg-slate-800 dark:file:text-slate-200"
+                  />
+                </div>
+              </div>
+
+              <div class="flex items-center gap-3 pt-2">
+                <button
+                  type="submit"
+                  class="min-h-[44px] rounded-xl bg-brand-700 px-5 text-sm font-semibold text-white transition hover:bg-brand-600"
+                >
+                  Save PDF Book
+                </button>
+                <button
+                  type="button"
+                  id="book-form-reset"
+                  class="min-h-[44px] rounded-xl border border-slate-200 px-4 text-xs font-semibold text-slate-700 dark:border-white/10 dark:text-slate-300"
+                >
+                  Clear
+                </button>
+              </div>
+            </form>
+
+            <!-- FORM C: PUBLISH / EDIT MEDIA -->
+            <form id="form-admin-media" class="admin-panel hidden space-y-4">
+              <input type="hidden" id="media-edit-id" value="" />
+              <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                <div>
+                  <label for="media-type" class="block text-xs font-semibold text-slate-700 dark:text-slate-300">
+                    Media Type
+                  </label>
+                  <select
+                    id="media-type"
+                    class="mt-1.5 min-h-[44px] w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm dark:border-white/10 dark:bg-slate-950"
+                  >
+                    <option value="photo">Photo (Lightbox)</option>
+                    <option value="video">Video (Protected Player)</option>
+                  </select>
+                </div>
+                <div class="sm:col-span-2">
+                  <label for="media-title" class="block text-xs font-semibold text-slate-700 dark:text-slate-300">
+                    Title
+                  </label>
+                  <input
+                    id="media-title"
+                    type="text"
+                    required
+                    placeholder="e.g. Hardware Prototyping Bench"
+                    class="mt-1.5 min-h-[44px] w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm dark:border-white/10 dark:bg-slate-950"
+                  />
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                <div class="sm:col-span-2">
+                  <label for="media-caption" class="block text-xs font-semibold text-slate-700 dark:text-slate-300">
+                    Caption
+                  </label>
+                  <input
+                    id="media-caption"
+                    type="text"
+                    required
+                    placeholder="Editorial description displayed in viewer..."
+                    class="mt-1.5 min-h-[44px] w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm dark:border-white/10 dark:bg-slate-950"
+                  />
+                </div>
+                <div>
+                  <label for="media-duration" class="block text-xs font-semibold text-slate-700 dark:text-slate-300">
+                    Duration (Video) / Resolution
+                  </label>
+                  <input
+                    id="media-duration"
+                    type="text"
+                    placeholder="00:05 or 4K"
+                    class="mt-1.5 min-h-[44px] w-full rounded-xl border border-slate-200 bg-slate-50 px-3 font-mono text-sm dark:border-white/10 dark:bg-slate-950"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label for="media-url" class="block text-xs font-semibold text-slate-700 dark:text-slate-300">
+                  Photo / Video URL or File Upload
+                </label>
+                <input
+                  id="media-url"
+                  type="url"
+                  placeholder="https://... or upload image/mp4 below"
+                  class="mt-1.5 min-h-[44px] w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm dark:border-white/10 dark:bg-slate-950"
+                />
+                <input
+                  id="media-file"
+                  type="file"
+                  accept="image/*,video/mp4,video/webm"
+                  class="mt-2 block w-full text-xs text-slate-500 file:mr-3 file:rounded-lg file:border-0 file:bg-slate-200 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-slate-800 dark:file:bg-slate-800 dark:file:text-slate-200"
+                />
+              </div>
+
+              <div class="flex items-center gap-3 pt-2">
+                <button
+                  type="submit"
+                  class="min-h-[44px] rounded-xl bg-brand-700 px-5 text-sm font-semibold text-white transition hover:bg-brand-600"
+                >
+                  Save Media Item
+                </button>
+                <button
+                  type="button"
+                  id="media-form-reset"
+                  class="min-h-[44px] rounded-xl border border-slate-200 px-4 text-xs font-semibold text-slate-700 dark:border-white/10 dark:text-slate-300"
+                >
+                  Clear
+                </button>
+              </div>
+            </form>
+
+            <!-- PANEL D: MANAGE ALL POSTS (EDIT & DELETE) -->
+            <div id="panel-admin-manage" class="admin-panel hidden space-y-3">
+              <div id="admin-manage-list" class="divide-y divide-slate-200 rounded-xl border border-slate-200 dark:divide-white/10 dark:border-white/10"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- =================================================================== -->
+    <!-- iOS SAFARI INSTALL GUIDE MODAL                                      -->
+    <!-- =================================================================== -->
+    <div
+      id="ios-install-modal"
+      role="dialog"
+      aria-modal="true"
+      class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
+    >
+      <div
+        class="w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl dark:border-white/10 dark:bg-slate-900"
+      >
+        <h3 class="font-display text-lg font-bold text-slate-900 dark:text-white">
+          Install on iPhone or iPad
+        </h3>
+        <p class="mt-2 text-sm leading-relaxed text-slate-600 dark:text-slate-300">
+          1. Tap the <strong>Share</strong> icon in the Safari toolbar.<br />
+          2. Scroll down and select <strong>Add to Home Screen</strong>.
+        </p>
+        <button
+          id="ios-install-close"
+          type="button"
+          class="mt-5 min-h-[44px] w-full rounded-xl bg-slate-900 text-sm font-semibold text-white dark:bg-white dark:text-slate-900"
+        >
+          Got it
+        </button>
+      </div>
+    </div>
+
+    <!-- =================================================================== -->
+    <!-- OFFLINE & TOAST NOTIFICATIONS                                       -->
+    <!-- =================================================================== -->
+    <div
+      id="offline-indicator"
+      class="fixed bottom-18 left-4 z-40 hidden items-center gap-2 rounded-lg bg-amber-600 px-3 py-2 text-xs font-semibold text-white shadow-lg md:bottom-4"
+    >
+      <span>Offline Mode · Cached content active</span>
+    </div>
+
+    <div
+      id="toast-notification"
+      role="status"
+      aria-live="polite"
+      class="pointer-events-none fixed bottom-20 left-1/2 z-50 hidden -translate-x-1/2 rounded-xl bg-slate-900 px-4 py-2.5 text-xs font-medium text-white shadow-xl dark:bg-slate-100 dark:text-slate-900 md:bottom-6"
+    ></div>
+
+    <!-- Main Application Logic (ES6+ Vanilla JS) -->
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

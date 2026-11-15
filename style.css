@@ -1,0 +1,105 @@
+/* ============================================================================
+   KINETIX HUB — PRODUCTION STYLESHEET
+   Mobile-first safe areas, compositor-only transitions, and strict PDF/Media
+   anti-extraction & print-blocking security rules.
+   ============================================================================ */
+
+:root {
+  --ease-settle: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Safe-area padding for notched Android/iOS WebViews */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.bottom-18 {
+  bottom: calc(4.25rem + env(safe-area-inset-bottom, 0px));
+}
+
+/* Tabular numerals for versions, file sizes, page counters, and metrics */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Compositor-only micro-interactions (<= 200ms) */
+.card-surface {
+  transition: transform 180ms var(--ease-settle), border-color 180ms ease;
+}
+
+@media (hover: hover) {
+  .card-surface:hover {
+    transform: translateY(-2px);
+  }
+}
+
+/* ============================================================================
+   CRITICAL CONTENT PROTECTION (PDF Canvas Reader & Protected Media)
+   Disables text selection, long-press callouts, image dragging, and
+   pointer-level saving on canvas/image elements.
+   ============================================================================ */
+.protected-surface,
+.protected-surface * {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.secure-canvas-stage {
+  touch-action: pan-x pan-y pinch-zoom;
+}
+
+/* Disabling pointer events directly on <canvas> blocks mobile browser
+   long-press "Save image as..." sheets while parent container stays scrollable */
+#pdf-canvas {
+  pointer-events: none;
+  -webkit-user-drag: none;
+  user-drag: none;
+}
+
+.protected-media-img {
+  pointer-events: none;
+  -webkit-user-drag: none;
+  user-drag: none;
+}
+
+/* Subtle diagonal security watermark overlay for read-only PDF canvas */
+.watermark-pattern {
+  background-image: repeating-linear-gradient(
+    -30deg,
+    rgba(15, 23, 42, 0.045) 0px,
+    rgba(15, 23, 42, 0.045) 1px,
+    transparent 1px,
+    transparent 96px
+  );
+}
+
+/* Disable browser printing whenever protected content is active */
+@media print {
+  body.reader-locked *,
+  #pdf-reader-modal,
+  #media-lightbox-modal {
+    display: none !important;
+    visibility: hidden !important;
+  }
+
+  body.reader-locked::after {
+    content: "Printing is disabled for protected documents.";
+    display: block;
+    padding: 2rem;
+    font-family: system-ui, sans-serif;
+    font-size: 1rem;
+    color: #0f172a;
+  }
+}
+
+/* Reduced motion compliance */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
